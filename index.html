@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home - I Want App Super Figa</title>
+  <title>Super App</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  
   <style>
     * {
       margin: 0;
@@ -15,74 +16,106 @@
 
     body {
       height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      background: linear-gradient(-45deg, #ff6ec4, #7873f5, #42e695, #f9f871);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
+      color: white;
+    }
+
+    /* PARTICELLE */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
+      z-index: 0;
     }
 
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .particles span {
+      position: absolute;
+      display: block;
+      width: 4px;
+      height: 4px;
+      background: white;
+      animation: float 10s linear infinite;
+      opacity: 0.7;
+      border-radius: 50%;
     }
 
-    h1 {
-      font-size: 4rem;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff6ec4, 0 0 30px #ff6ec4, 0 0 40px #ff6ec4;
-      animation: neon 1.5s ease-in-out infinite alternate;
-      margin-bottom: 50px;
-      text-align: center;
-    }
-
-    @keyframes neon {
+    @keyframes float {
       from {
-        text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff6ec4, 0 0 30px #ff6ec4, 0 0 40px #ff6ec4;
+        transform: translateY(100vh) scale(0);
       }
       to {
-        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff6ec4, 0 0 40px #ff6ec4, 0 0 50px #ff6ec4;
+        transform: translateY(-10vh) scale(1);
       }
     }
 
-    .download-btn {
-      padding: 15px 35px;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #fff;
-      border: 2px solid #fff;
-      border-radius: 50px;
-      background: transparent;
-      cursor: pointer;
+    /* TITOLO */
+    h1 {
+      font-size: 4rem;
+      text-align: center;
+      z-index: 1;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 10px #fff, 0 0 20px #ff6ec4;
-      animation: btnPulse 2s infinite;
+      letter-spacing: 4px;
+      background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glow 2s ease-in-out infinite alternate;
     }
 
-    .download-btn:hover {
-      background: #ff6ec4;
-      box-shadow: 0 0 20px #ff6ec4, 0 0 40px #ff6ec4;
-      transform: scale(1.1);
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px rgba(255,255,255,0.2);
+      }
+      to {
+        text-shadow: 0 0 30px rgba(255,255,255,0.8);
+      }
     }
 
-    @keyframes btnPulse {
-      0% { box-shadow: 0 0 10px #fff, 0 0 20px #ff6ec4; }
-      50% { box-shadow: 0 0 20px #fff, 0 0 40px #ff6ec4; }
-      100% { box-shadow: 0 0 10px #fff, 0 0 20px #ff6ec4; }
+    /* BOTTONE */
+    .btn {
+      margin-top: 40px;
+      padding: 15px 40px;
+      font-size: 1.3rem;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(90deg, #ff6ec4, #7873f5);
+      box-shadow: 0 0 15px rgba(255,255,255,0.4);
+      transition: 0.3s;
+      z-index: 1;
+    }
+
+    .btn:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 30px rgba(255,255,255,0.8);
     }
 
   </style>
 </head>
 <body>
-  <h1>I Want App</h1>
-  <button class="download-btn">Scarica l'app</button>
+
+  <div class="particles" id="particles"></div>
+
+  <h1>I want app super figa</h1>
+  <button class="btn">Scarica l'app</button>
+
+  <script>
+    const particlesContainer = document.getElementById("particles");
+
+    for (let i = 0; i < 80; i++) {
+      let particle = document.createElement("span");
+      particle.style.left = Math.random() * 100 + "vw";
+      particle.style.animationDuration = (5 + Math.random() * 5) + "s";
+      particle.style.opacity = Math.random();
+      particlesContainer.appendChild(particle);
+    }
+  </script>
+
 </body>
 </html>
