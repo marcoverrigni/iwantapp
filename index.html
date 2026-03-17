@@ -18,22 +18,23 @@
 body {
   height: 100vh;
   overflow: hidden;
-  background: #0a0a0a;
+  background: radial-gradient(circle at center, #0a0a0a, #050505);
   color: white;
+  perspective: 1000px;
 }
 
-/* CANVAS BACKGROUND */
+/* CANVAS */
 canvas {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: -1;
+  z-index: -2;
 }
 
-/* CURSORE GLOW */
+/* CURSORE */
 .cursor {
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: radial-gradient(circle, #ff6ec4, transparent);
   position: fixed;
@@ -42,35 +43,36 @@ canvas {
   z-index: 999;
 }
 
-/* CONTAINER */
+/* CONTAINER 3D */
 .container {
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  text-align: center;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease;
 }
 
-/* TITOLO */
+/* TITOLONE */
 h1 {
   font-size: 4.5rem;
   font-weight: 800;
   background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: fadeUp 1.5s ease forwards;
+  transform: translateZ(80px);
 }
 
-/* TESTO CAMBIANTE */
+/* SUBTEXT */
 .dynamic-text {
   margin-top: 20px;
   font-size: 1.2rem;
   opacity: 0.8;
-  height: 30px;
+  transform: translateZ(50px);
 }
 
-/* BOTTONE */
+/* BUTTON */
 .btn {
   margin-top: 40px;
   padding: 15px 45px;
@@ -80,24 +82,13 @@ h1 {
   cursor: pointer;
   background: linear-gradient(90deg, #ff6ec4, #7873f5);
   color: white;
+  transform: translateZ(100px);
   transition: 0.3s;
 }
 
 .btn:hover {
-  transform: scale(1.2);
+  transform: translateZ(120px) scale(1.15);
   box-shadow: 0 0 40px #ff6ec4;
-}
-
-/* ANIMAZIONI */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 </style>
@@ -108,8 +99,8 @@ h1 {
 <div class="cursor" id="cursor"></div>
 <canvas id="bg"></canvas>
 
-<div class="container">
-  <h1>I want app</h1>
+<div class="container" id="container">
+  <h1>I Want App</h1>
   <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
@@ -122,12 +113,22 @@ document.addEventListener("mousemove", e => {
   cursor.style.top = e.clientY + "px";
 });
 
+// 3D PARALLAX
+const container = document.getElementById("container");
+
+document.addEventListener("mousemove", e => {
+  let x = (window.innerWidth / 2 - e.clientX) / 25;
+  let y = (window.innerHeight / 2 - e.clientY) / 25;
+
+  container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+});
+
 // TESTO DINAMICO
 const texts = [
   "Velocissima ⚡",
   "Design assurdo 🎨",
-  "Intelligenza smart 🤖",
-  "Esperienza next-gen 🚀"
+  "Smart AI 🤖",
+  "Next-gen 🚀"
 ];
 
 let i = 0;
@@ -145,7 +146,7 @@ function changeText() {
 setInterval(changeText, 2000);
 changeText();
 
-// PARTICELLE INTERATTIVE
+// PARTICELLE
 const canvas = document.getElementById("bg");
 const ctx = canvas.getContext("2d");
 
@@ -154,7 +155,7 @@ canvas.height = window.innerHeight;
 
 let particles = [];
 
-for (let i = 0; i < 120; i++) {
+for (let i = 0; i < 100; i++) {
   particles.push({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
@@ -163,13 +164,6 @@ for (let i = 0; i < 120; i++) {
   });
 }
 
-let mouse = { x: null, y: null };
-
-document.addEventListener("mousemove", e => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-});
-
 function animate() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -177,36 +171,10 @@ function animate() {
     p.x += p.vx;
     p.y += p.vy;
 
-    // attrazione mouse
-    if (mouse.x) {
-      let dx = mouse.x - p.x;
-      let dy = mouse.y - p.y;
-      let dist = Math.sqrt(dx*dx + dy*dy);
-
-      if (dist < 120) {
-        p.x -= dx * 0.01;
-        p.y -= dy * 0.01;
-      }
-    }
-
     ctx.beginPath();
     ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
     ctx.fillStyle = "white";
     ctx.fill();
-
-    particles.forEach(p2 => {
-      let dx = p.x - p2.x;
-      let dy = p.y - p2.y;
-      let dist = Math.sqrt(dx*dx + dy*dy);
-
-      if (dist < 100) {
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-      }
-    });
   });
 
   requestAnimationFrame(animate);
