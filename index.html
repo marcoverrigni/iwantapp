@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super App</title>
+<title>Super App 3D</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -16,176 +16,131 @@
 }
 
 body {
-  height: 100vh;
   overflow: hidden;
-  background: radial-gradient(circle at center, #0a0a0a, #050505);
+  background: #000;
   color: white;
-  perspective: 1000px;
 }
 
-/* CANVAS */
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -2;
-}
-
-/* CURSORE */
-.cursor {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ff6ec4, transparent);
-  position: fixed;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  z-index: 999;
-}
-
-/* CONTAINER 3D */
-.container {
+/* UI SOPRA IL 3D */
+.ui {
+  position: absolute;
+  width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  transform-style: preserve-3d;
-  transition: transform 0.1s ease;
+  pointer-events: none;
+  text-align: center;
 }
 
-/* TITOLONE */
 h1 {
-  font-size: 4.5rem;
+  font-size: 4rem;
   font-weight: 800;
   background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  transform: translateZ(80px);
 }
 
-/* SUBTEXT */
-.dynamic-text {
-  margin-top: 20px;
-  font-size: 1.2rem;
-  opacity: 0.8;
-  transform: translateZ(50px);
-}
-
-/* BUTTON */
 .btn {
   margin-top: 40px;
-  padding: 15px 45px;
+  padding: 15px 40px;
   border-radius: 50px;
   border: none;
-  font-weight: 600;
-  cursor: pointer;
   background: linear-gradient(90deg, #ff6ec4, #7873f5);
   color: white;
-  transform: translateZ(100px);
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
   transition: 0.3s;
 }
 
 .btn:hover {
-  transform: translateZ(120px) scale(1.15);
-  box-shadow: 0 0 40px #ff6ec4;
+  transform: scale(1.15);
+  box-shadow: 0 0 30px #ff6ec4;
 }
 
+canvas {
+  display: block;
+}
 </style>
 </head>
 
 <body>
 
-<div class="cursor" id="cursor"></div>
-<canvas id="bg"></canvas>
-
-<div class="container" id="container">
+<div class="ui">
   <h1>I Want App</h1>
-  <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <script>
-// CURSORE
-const cursor = document.getElementById("cursor");
-document.addEventListener("mousemove", e => {
-  cursor.style.left = e.clientX + "px";
-  cursor.style.top = e.clientY + "px";
+// SCENA
+const scene = new THREE.Scene();
+
+// CAMERA
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+camera.position.z = 5;
+
+// RENDERER
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// OGGETTO (sfera glow)
+const geometry = new THREE.IcosahedronGeometry(1.5, 1);
+const material = new THREE.MeshStandardMaterial({
+  color: 0xff6ec4,
+  wireframe: true
+});
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
+
+// LUCI
+const light = new THREE.PointLight(0xffffff, 2);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambient);
+
+// MOUSE
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener("mousemove", (e) => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
 });
 
-// 3D PARALLAX
-const container = document.getElementById("container");
-
-document.addEventListener("mousemove", e => {
-  let x = (window.innerWidth / 2 - e.clientX) / 25;
-  let y = (window.innerHeight / 2 - e.clientY) / 25;
-
-  container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-});
-
-// TESTO DINAMICO
-const texts = [
-  "Velocissima ⚡",
-  "Design assurdo 🎨",
-  "Smart AI 🤖",
-  "Next-gen 🚀"
-];
-
-let i = 0;
-const dynamicText = document.getElementById("dynamicText");
-
-function changeText() {
-  dynamicText.style.opacity = 0;
-  setTimeout(() => {
-    dynamicText.innerText = texts[i];
-    dynamicText.style.opacity = 1;
-    i = (i + 1) % texts.length;
-  }, 300);
-}
-
-setInterval(changeText, 2000);
-changeText();
-
-// PARTICELLE
-const canvas = document.getElementById("bg");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let particles = [];
-
-for (let i = 0; i < 100; i++) {
-  particles.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    vx: Math.random() - 0.5,
-    vy: Math.random() - 0.5
-  });
-}
-
+// ANIMAZIONE
 function animate() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  particles.forEach(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-    ctx.fillStyle = "white";
-    ctx.fill();
-  });
-
   requestAnimationFrame(animate);
+
+  // rotazione base
+  sphere.rotation.x += 0.005;
+  sphere.rotation.y += 0.005;
+
+  // segue il mouse
+  sphere.rotation.x += mouseY * 0.01;
+  sphere.rotation.y += mouseX * 0.01;
+
+  renderer.render(scene, camera);
 }
 
 animate();
 
 // RESIZE
 window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 </script>
 
