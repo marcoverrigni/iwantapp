@@ -22,7 +22,7 @@ body {
   color: white;
 }
 
-/* LUCE CHE SEGUE IL MOUSE */
+/* LUCE MOUSE */
 .light {
   position: fixed;
   width: 400px;
@@ -33,7 +33,7 @@ body {
   z-index: 0;
 }
 
-/* CONTAINER 3D FAKE */
+/* CONTAINER */
 .container {
   height: 100%;
   display: flex;
@@ -42,8 +42,8 @@ body {
   flex-direction: column;
   transform-style: preserve-3d;
   transition: transform 0.08s ease-out;
-  z-index: 1;
   position: relative;
+  z-index: 1;
 }
 
 /* TITOLO */
@@ -59,14 +59,28 @@ h1 {
 
 /* TESTO DINAMICO */
 .dynamic-text {
-  margin-top: 20px;
-  font-size: 1.2rem;
-  opacity: 0.8;
+  margin-top: 25px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  height: 40px;
   transform: translateZ(50px);
-  transition: opacity 0.3s;
 }
 
-/* BOTTONE PREMIUM */
+.dynamic-text span {
+  background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-right: 2px solid rgba(255,255,255,0.7);
+  padding-right: 5px;
+  animation: blink 0.8s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { border-color: rgba(255,255,255,0.7); }
+  25%, 75% { border-color: transparent; }
+}
+
+/* BOTTONE */
 .btn {
   margin-top: 40px;
   padding: 15px 45px;
@@ -95,7 +109,7 @@ h1 {
 <div class="light" id="light"></div>
 
 <div class="container" id="container">
-  <h1>I Want App</h1>
+  <h1>I want app super figa</h1>
   <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
@@ -103,7 +117,6 @@ h1 {
 <script>
 // LUCE FOLLOW
 const light = document.getElementById("light");
-
 document.addEventListener("mousemove", e => {
   light.style.left = e.clientX + "px";
   light.style.top = e.clientY + "px";
@@ -111,37 +124,51 @@ document.addEventListener("mousemove", e => {
 
 // PARALLAX 3D
 const container = document.getElementById("container");
-
 document.addEventListener("mousemove", e => {
   let x = (window.innerWidth / 2 - e.clientX) / 30;
   let y = (window.innerHeight / 2 - e.clientY) / 30;
-
   container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
 });
 
-// TESTO DINAMICO
+// TESTO DINAMICO FIGO (typing)
 const texts = [
-  "Velocissima ⚡",
-  "Design assurdo 🎨",
-  "Smart AI 🤖",
-  "Esperienza next-gen 🚀"
+  "Quella che userai ogni giorno",
+  "Più veloce di tutto il resto",
+  "Design che spacca davvero",
+  "Non è un'app qualsiasi"
 ];
 
 let i = 0;
+let j = 0;
+let currentText = "";
+let isDeleting = false;
+
 const dynamicText = document.getElementById("dynamicText");
 
-function changeText() {
-  dynamicText.style.opacity = 0;
-  setTimeout(() => {
-    dynamicText.innerText = texts[i];
-    dynamicText.style.opacity = 1;
+function typeEffect() {
+  currentText = texts[i];
+
+  if (!isDeleting) {
+    dynamicText.innerHTML = "<span>" + currentText.substring(0, j++) + "</span>";
+  } else {
+    dynamicText.innerHTML = "<span>" + currentText.substring(0, j--) + "</span>";
+  }
+
+  if (!isDeleting && j === currentText.length) {
+    isDeleting = true;
+    setTimeout(typeEffect, 1200);
+    return;
+  }
+
+  if (isDeleting && j === 0) {
+    isDeleting = false;
     i = (i + 1) % texts.length;
-  }, 250);
+  }
+
+  setTimeout(typeEffect, isDeleting ? 40 : 70);
 }
 
-setInterval(changeText, 2000);
-changeText();
-
+typeEffect();
 </script>
 
 </body>
