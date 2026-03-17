@@ -21,7 +21,7 @@ body {
   color: white;
 }
 
-/* UI SOPRA IL 3D */
+/* UI */
 .ui {
   position: absolute;
   width: 100%;
@@ -35,7 +35,7 @@ body {
 }
 
 h1 {
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 800;
   background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
   -webkit-background-clip: text;
@@ -43,7 +43,7 @@ h1 {
 }
 
 .btn {
-  margin-top: 40px;
+  margin-top: 30px;
   padding: 15px 40px;
   border-radius: 50px;
   border: none;
@@ -59,17 +59,13 @@ h1 {
   transform: scale(1.15);
   box-shadow: 0 0 30px #ff6ec4;
 }
-
-canvas {
-  display: block;
-}
 </style>
 </head>
 
 <body>
 
 <div class="ui">
-  <h1>I Want App</h1>
+  <h1>I want app</h1>
   <button class="btn">Scarica ora</button>
 </div>
 
@@ -86,50 +82,69 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 5;
+camera.position.z = 6;
 
 // RENDERER
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// OGGETTO (sfera glow)
-const geometry = new THREE.IcosahedronGeometry(1.5, 1);
-const material = new THREE.MeshStandardMaterial({
-  color: 0xff6ec4,
-  wireframe: true
-});
-const sphere = new THREE.Mesh(geometry, material);
-scene.add(sphere);
-
 // LUCI
-const light = new THREE.PointLight(0xffffff, 2);
+const light = new THREE.PointLight(0xffffff, 1.5);
 light.position.set(5, 5, 5);
 scene.add(light);
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambient);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+// 📱 TELEFONO (gruppo)
+const phone = new THREE.Group();
+scene.add(phone);
+
+// CORPO
+const bodyGeo = new THREE.BoxGeometry(2.5, 5, 0.3);
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+phone.add(body);
+
+// SCHERMO
+const screenGeo = new THREE.BoxGeometry(2.2, 4.5, 0.05);
+const screenMat = new THREE.MeshStandardMaterial({
+  color: 0x000000,
+  emissive: 0x222244
+});
+const screen = new THREE.Mesh(screenGeo, screenMat);
+screen.position.z = 0.18;
+phone.add(screen);
+
+// CONTENUTO SCHERMO (glow)
+const screenGlowGeo = new THREE.PlaneGeometry(2, 4.2);
+const screenGlowMat = new THREE.MeshBasicMaterial({
+  color: 0xff6ec4
+});
+const glow = new THREE.Mesh(screenGlowGeo, screenGlowMat);
+glow.position.z = 0.21;
+phone.add(glow);
 
 // MOUSE
 let mouseX = 0;
 let mouseY = 0;
 
 document.addEventListener("mousemove", (e) => {
-  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  mouseX = (e.clientX / window.innerWidth - 0.5);
+  mouseY = (e.clientY / window.innerHeight - 0.5);
 });
 
 // ANIMAZIONE
 function animate() {
   requestAnimationFrame(animate);
 
-  // rotazione base
-  sphere.rotation.x += 0.005;
-  sphere.rotation.y += 0.005;
+  // floating
+  phone.rotation.y += 0.005;
+  phone.rotation.x = mouseY * 0.5;
+  phone.rotation.y += mouseX * 0.5;
 
-  // segue il mouse
-  sphere.rotation.x += mouseY * 0.01;
-  sphere.rotation.y += mouseX * 0.01;
+  // effetto fluttuante
+  phone.position.y = Math.sin(Date.now() * 0.002) * 0.3;
 
   renderer.render(scene, camera);
 }
