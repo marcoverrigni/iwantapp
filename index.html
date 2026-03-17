@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super App 3D</title>
+<title>Super App</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -16,146 +16,176 @@
 }
 
 body {
+  height: 100vh;
   overflow: hidden;
-  background: #000;
+  background: radial-gradient(circle at center, #0a0a0a, #050505);
   color: white;
+  perspective: 1000px;
 }
 
-/* UI */
-.ui {
-  position: absolute;
-  width: 100%;
+/* CANVAS */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -2;
+}
+
+/* CURSORE */
+.cursor {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff6ec4, transparent);
+  position: fixed;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+}
+
+/* CONTAINER 3D */
+.container {
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  pointer-events: none;
-  text-align: center;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease;
 }
 
+/* TITOLONE */
 h1 {
-  font-size: 3.5rem;
+  font-size: 4.5rem;
   font-weight: 800;
   background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  transform: translateZ(80px);
 }
 
+/* SUBTEXT */
+.dynamic-text {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  opacity: 0.8;
+  transform: translateZ(50px);
+}
+
+/* BUTTON */
 .btn {
-  margin-top: 30px;
-  padding: 15px 40px;
+  margin-top: 40px;
+  padding: 15px 45px;
   border-radius: 50px;
   border: none;
-  background: linear-gradient(90deg, #ff6ec4, #7873f5);
-  color: white;
   font-weight: 600;
   cursor: pointer;
-  pointer-events: auto;
+  background: linear-gradient(90deg, #ff6ec4, #7873f5);
+  color: white;
+  transform: translateZ(100px);
   transition: 0.3s;
 }
 
 .btn:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 30px #ff6ec4;
+  transform: translateZ(120px) scale(1.15);
+  box-shadow: 0 0 40px #ff6ec4;
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="ui">
-  <h1>I want app</h1>
+<div class="cursor" id="cursor"></div>
+<canvas id="bg"></canvas>
+
+<div class="container" id="container">
+  <h1>I Want App</h1>
+  <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script>
-// SCENA
-const scene = new THREE.Scene();
-
-// CAMERA
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.z = 6;
-
-// RENDERER
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-// LUCI
-const light = new THREE.PointLight(0xffffff, 1.5);
-light.position.set(5, 5, 5);
-scene.add(light);
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
-// 📱 TELEFONO (gruppo)
-const phone = new THREE.Group();
-scene.add(phone);
-
-// CORPO
-const bodyGeo = new THREE.BoxGeometry(2.5, 5, 0.3);
-const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-const body = new THREE.Mesh(bodyGeo, bodyMat);
-phone.add(body);
-
-// SCHERMO
-const screenGeo = new THREE.BoxGeometry(2.2, 4.5, 0.05);
-const screenMat = new THREE.MeshStandardMaterial({
-  color: 0x000000,
-  emissive: 0x222244
-});
-const screen = new THREE.Mesh(screenGeo, screenMat);
-screen.position.z = 0.18;
-phone.add(screen);
-
-// CONTENUTO SCHERMO (glow)
-const screenGlowGeo = new THREE.PlaneGeometry(2, 4.2);
-const screenGlowMat = new THREE.MeshBasicMaterial({
-  color: 0xff6ec4
-});
-const glow = new THREE.Mesh(screenGlowGeo, screenGlowMat);
-glow.position.z = 0.21;
-phone.add(glow);
-
-// MOUSE
-let mouseX = 0;
-let mouseY = 0;
-
-document.addEventListener("mousemove", (e) => {
-  mouseX = (e.clientX / window.innerWidth - 0.5);
-  mouseY = (e.clientY / window.innerHeight - 0.5);
+// CURSORE
+const cursor = document.getElementById("cursor");
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
 });
 
-// ANIMAZIONE
+// 3D PARALLAX
+const container = document.getElementById("container");
+
+document.addEventListener("mousemove", e => {
+  let x = (window.innerWidth / 2 - e.clientX) / 25;
+  let y = (window.innerHeight / 2 - e.clientY) / 25;
+
+  container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+});
+
+// TESTO DINAMICO
+const texts = [
+  "Velocissima ⚡",
+  "Design assurdo 🎨",
+  "Smart AI 🤖",
+  "Next-gen 🚀"
+];
+
+let i = 0;
+const dynamicText = document.getElementById("dynamicText");
+
+function changeText() {
+  dynamicText.style.opacity = 0;
+  setTimeout(() => {
+    dynamicText.innerText = texts[i];
+    dynamicText.style.opacity = 1;
+    i = (i + 1) % texts.length;
+  }, 300);
+}
+
+setInterval(changeText, 2000);
+changeText();
+
+// PARTICELLE
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+for (let i = 0; i < 100; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: Math.random() - 0.5,
+    vy: Math.random() - 0.5
+  });
+}
+
 function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+  });
+
   requestAnimationFrame(animate);
-
-  // floating
-  phone.rotation.y += 0.005;
-  phone.rotation.x = mouseY * 0.5;
-  phone.rotation.y += mouseX * 0.5;
-
-  // effetto fluttuante
-  phone.position.y = Math.sin(Date.now() * 0.002) * 0.3;
-
-  renderer.render(scene, camera);
 }
 
 animate();
 
 // RESIZE
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 });
 </script>
 
