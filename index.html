@@ -15,7 +15,7 @@ canvas { position:fixed; top:0; left:0; width:100%; height:100%; }
 #aurora { z-index:1; }
 .light { position:fixed; width:120px; height:120px; background:radial-gradient(circle, rgba(255,110,196,0.8), transparent 70%); pointer-events:none; transform:translate(-50%,-50%); z-index:2; mix-blend-mode:screen; }
 .container { height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; position:relative; z-index:3; }
-h1 { font-size:4.5rem; font-weight:800; background:linear-gradient(90deg,#ff6ec4,#7873f5,#42e695); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 40px rgba(255,110,196,0.2); }
+h1 { font-size:4.5rem; font-weight:800; background:linear-gradient(90deg,#ff6ec4,#7873f5,#42e695); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 30px rgba(255,110,196,0.2); }
 .dynamic-text { margin-top:25px; font-size:1.4rem; height:40px; }
 .dynamic-text span { border-right:2px solid rgba(255,255,255,0.7); padding-right:5px; animation:blink 0.8s infinite; }
 @keyframes blink {50%{border-color:transparent;}}
@@ -51,22 +51,17 @@ let w,h;
 function resize(){ w=starCanvas.width=shootingCanvas.width=auroraCanvas.width=window.innerWidth; h=starCanvas.height=shootingCanvas.height=auroraCanvas.height=window.innerHeight;}
 resize(); window.addEventListener("resize",resize);
 
-// ===== STELLE =====
+// ===== STELLE FISSE =====
 let stars=[];
-for(let i=0;i<150;i++){ stars.push({x:Math.random()*w, y:Math.random()*h, size:Math.random()*2, alpha:Math.random(), speed:Math.random()*0.02});}
+for(let i=0;i<120;i++){
+  stars.push({x:Math.random()*w, y:Math.random()*h, size:Math.random()*2, alpha:Math.random(), speed:Math.random()*0.01});
+}
 function drawStars(){
   starCtx.clearRect(0,0,w,h);
-  // via lattea soft
-  let gradient=starCtx.createRadialGradient(w/2,h/2,w/2, w/2,h/2,0);
-  gradient.addColorStop(0,"rgba(255,255,255,0.05)");
-  gradient.addColorStop(1,"transparent");
-  starCtx.fillStyle=gradient;
-  starCtx.fillRect(0,0,w,h);
-
   stars.forEach(s=>{
-    s.alpha+= (Math.random()-0.5)*0.05;
-    if(s.alpha<0.1)s.alpha=0.1;
-    if(s.alpha>1)s.alpha=1;
+    s.alpha += (Math.random()-0.5)*0.02;
+    if(s.alpha<0.3) s.alpha=0.3;
+    if(s.alpha>1) s.alpha=1;
     starCtx.beginPath();
     starCtx.arc(s.x,s.y,s.size,0,Math.PI*2);
     starCtx.fillStyle=`rgba(255,255,255,${s.alpha})`;
@@ -79,12 +74,12 @@ drawStars();
 // ===== STELLE CADENTI =====
 let shootingStarsArr=[];
 function spawnShootingStar(){
-  if(Math.random()<0.01){ // rarità
+  if(Math.random()<0.005){ // rarità
     shootingStarsArr.push({
       x: Math.random()*w,
       y: Math.random()*h/2,
-      len: Math.random()*100+50,
-      speed: Math.random()*10+8,
+      len: Math.random()*80+30,
+      speed: Math.random()*6+4,
       alpha:1
     });
   }
@@ -100,7 +95,7 @@ function drawShootingStars(){
     shootCtx.lineWidth=2;
     shootCtx.stroke();
     s.x+=s.speed;
-    s.y+=s.speed;
+    s.y+=s.speed*0.8;
     s.alpha-=0.02;
     if(s.alpha<=0) shootingStarsArr.splice(i,1);
   });
@@ -117,9 +112,9 @@ function drawAurora(){
   ctx.clearRect(0,0,w,h);
   for(let l=0;l<5;l++){
     ctx.beginPath();
-    ctx.filter=`blur(${l*20}px)`;
+    ctx.filter=`blur(${l*8}px)`; // blur moderato
     for(let x=0;x<w;x+=3){
-      let y=h/2+noise(x+t*200+l*100)*120+noise(x*0.5+t*300)*60;
+      let y=h/2+noise(x+t*150+l*100)*80+noise(x*0.5+t*200)*40;
       ctx.lineTo(x,y);
     }
     ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
@@ -134,7 +129,7 @@ function drawAurora(){
     ctx.fill();
   }
   ctx.filter="none";
-  t+=0.002;
+  t+=0.0025;
   requestAnimationFrame(drawAurora);
 }
 drawAurora();
