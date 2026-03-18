@@ -66,7 +66,7 @@ h1 {
   -webkit-text-fill-color: transparent;
   transform: translateZ(80px);
   letter-spacing: 2px;
-  transition: text-shadow 0.2s ease;
+  text-shadow: 0 0 30px rgba(255,110,196,0.2);
 }
 
 /* TESTO DINAMICO */
@@ -123,13 +123,13 @@ h1 {
 <div class="light" id="light"></div>
 
 <div class="container" id="container">
-  <h1 id="title">I Want App</h1>
+  <h1>I Want App</h1>
   <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
 
 <script>
-// CANVAS AURORA PRO
+// AURORA SENZA MAGNETISMO
 const canvas = document.getElementById("aurora");
 const ctx = canvas.getContext("2d");
 
@@ -142,13 +142,6 @@ resize();
 window.addEventListener("resize", resize);
 
 let time = 0;
-let mouseX = w / 2;
-let mouseY = h / 2;
-
-document.addEventListener("mousemove", e => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
 
 function drawAurora() {
   ctx.clearRect(0, 0, w, h);
@@ -157,15 +150,10 @@ function drawAurora() {
     ctx.beginPath();
 
     for (let x = 0; x < w; x += 4) {
-      let wave =
+      let y =
+        h / 2 +
         Math.sin(x * 0.002 + time + i) * 60 +
         Math.sin(x * 0.004 + time * 1.5) * 30;
-
-      // effetto magnetico verso il mouse
-      let dist = Math.abs(x - mouseX);
-      let influence = Math.max(0, 150 - dist) / 150;
-
-      let y = h / 2 + wave - influence * 120;
 
       ctx.lineTo(x, y);
     }
@@ -178,17 +166,15 @@ function drawAurora() {
 
     if (i === 0) {
       gradient.addColorStop(0, "rgba(120,115,245,0.35)");
-      gradient.addColorStop(1, "transparent");
     } else if (i === 1) {
       gradient.addColorStop(0, "rgba(255,110,196,0.3)");
-      gradient.addColorStop(1, "transparent");
     } else if (i === 2) {
       gradient.addColorStop(0, "rgba(66,230,149,0.3)");
-      gradient.addColorStop(1, "transparent");
     } else {
-      gradient.addColorStop(0, "rgba(255,255,255,0.15)");
-      gradient.addColorStop(1, "transparent");
+      gradient.addColorStop(0, "rgba(255,255,255,0.1)");
     }
+
+    gradient.addColorStop(1, "transparent");
 
     ctx.fillStyle = gradient;
     ctx.fill();
@@ -202,23 +188,12 @@ drawAurora();
 
 // LUCE FOLLOW
 const light = document.getElementById("light");
-const title = document.getElementById("title");
-
 document.addEventListener("mousemove", e => {
   light.style.left = e.clientX + "px";
   light.style.top = e.clientY + "px";
-
-  // glow dinamico sul titolo
-  let dx = e.clientX - window.innerWidth / 2;
-  let dy = e.clientY - window.innerHeight / 2;
-
-  title.style.textShadow = `
-    ${dx * 0.02}px ${dy * 0.02}px 30px rgba(255,110,196,0.4),
-    ${-dx * 0.02}px ${-dy * 0.02}px 30px rgba(120,115,245,0.4)
-  `;
 });
 
-// PARALLAX 3D
+// PARALLAX
 const container = document.getElementById("container");
 document.addEventListener("mousemove", e => {
   let x = (window.innerWidth / 2 - e.clientX) / 30;
