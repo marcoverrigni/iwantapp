@@ -8,98 +8,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
-}
-
-body {
-  height: 100vh;
-  overflow: hidden;
-  background: #050505;
-  color: white;
-}
-
-/* CANVAS */
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* livelli */
-#stars { z-index: 0; }
-#aurora { z-index: 1; }
-
-/* LUCE */
-.light {
-  position: fixed;
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(circle, rgba(255,110,196,0.8), transparent 70%);
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  mix-blend-mode: screen;
-}
-
-/* CONTENUTO */
-.container {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  position: relative;
-  z-index: 3;
-}
-
-h1 {
-  font-size: 4.5rem;
-  font-weight: 800;
-  background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 40px rgba(255,110,196,0.2);
-}
-
-.dynamic-text {
-  margin-top: 25px;
-  font-size: 1.4rem;
-  height: 40px;
-}
-
-.dynamic-text span {
-  border-right: 2px solid rgba(255,255,255,0.7);
-  padding-right: 5px;
-  animation: blink 0.8s infinite;
-}
-
-@keyframes blink {
-  50% { border-color: transparent; }
-}
-
-.btn {
-  margin-top: 40px;
-  padding: 15px 45px;
-  border-radius: 50px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
-  color: white;
-  cursor: pointer;
-}
-
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
+body { height:100vh; overflow:hidden; background:#050505; color:white; }
+canvas { position:fixed; top:0; left:0; width:100%; height:100%; }
+#stars, #shootingStars { z-index:0; }
+#aurora { z-index:1; }
+.light { position:fixed; width:120px; height:120px; background:radial-gradient(circle, rgba(255,110,196,0.8), transparent 70%); pointer-events:none; transform:translate(-50%,-50%); z-index:2; mix-blend-mode:screen; }
+.container { height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; position:relative; z-index:3; }
+h1 { font-size:4.5rem; font-weight:800; background:linear-gradient(90deg,#ff6ec4,#7873f5,#42e695); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 40px rgba(255,110,196,0.2); }
+.dynamic-text { margin-top:25px; font-size:1.4rem; height:40px; }
+.dynamic-text span { border-right:2px solid rgba(255,255,255,0.7); padding-right:5px; animation:blink 0.8s infinite; }
+@keyframes blink {50%{border-color:transparent;}}
+.btn { margin-top:40px; padding:15px 45px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); color:white; cursor:pointer; }
+.btn:hover { background:linear-gradient(90deg,#ff6ec4,#7873f5); box-shadow:0 0 40px rgba(255,110,196,0.6); }
 </style>
 </head>
 
 <body>
 
 <canvas id="stars"></canvas>
+<canvas id="shootingStars"></canvas>
 <canvas id="aurora"></canvas>
 
 <div class="light" id="light"></div>
@@ -114,133 +42,120 @@ h1 {
 // ===== SETUP =====
 const starCanvas = document.getElementById("stars");
 const starCtx = starCanvas.getContext("2d");
-
+const shootingCanvas = document.getElementById("shootingStars");
+const shootCtx = shootingCanvas.getContext("2d");
 const auroraCanvas = document.getElementById("aurora");
 const ctx = auroraCanvas.getContext("2d");
 
-let w, h;
-function resize() {
-  w = starCanvas.width = auroraCanvas.width = window.innerWidth;
-  h = starCanvas.height = auroraCanvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
+let w,h;
+function resize(){ w=starCanvas.width=shootingCanvas.width=auroraCanvas.width=window.innerWidth; h=starCanvas.height=shootingCanvas.height=auroraCanvas.height=window.innerHeight;}
+resize(); window.addEventListener("resize",resize);
 
 // ===== STELLE =====
-let stars = [];
+let stars=[];
+for(let i=0;i<150;i++){ stars.push({x:Math.random()*w, y:Math.random()*h, size:Math.random()*2, alpha:Math.random(), speed:Math.random()*0.02});}
+function drawStars(){
+  starCtx.clearRect(0,0,w,h);
+  // via lattea soft
+  let gradient=starCtx.createRadialGradient(w/2,h/2,w/2, w/2,h/2,0);
+  gradient.addColorStop(0,"rgba(255,255,255,0.05)");
+  gradient.addColorStop(1,"transparent");
+  starCtx.fillStyle=gradient;
+  starCtx.fillRect(0,0,w,h);
 
-for (let i = 0; i < 120; i++) {
-  stars.push({
-    x: Math.random() * w,
-    y: Math.random() * h,
-    size: Math.random() * 2,
-    alpha: Math.random(),
-    speed: Math.random() * 0.02
-  });
-}
-
-function drawStars() {
-  starCtx.clearRect(0, 0, w, h);
-
-  stars.forEach(s => {
-    s.alpha += (Math.random() - 0.5) * 0.05;
-
-    if (s.alpha < 0.1) s.alpha = 0.1;
-    if (s.alpha > 1) s.alpha = 1;
-
+  stars.forEach(s=>{
+    s.alpha+= (Math.random()-0.5)*0.05;
+    if(s.alpha<0.1)s.alpha=0.1;
+    if(s.alpha>1)s.alpha=1;
     starCtx.beginPath();
-    starCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-    starCtx.fillStyle = `rgba(255,255,255,${s.alpha})`;
+    starCtx.arc(s.x,s.y,s.size,0,Math.PI*2);
+    starCtx.fillStyle=`rgba(255,255,255,${s.alpha})`;
     starCtx.fill();
   });
-
   requestAnimationFrame(drawStars);
 }
 drawStars();
 
-// ===== NOISE =====
-function noise(x) {
-  return Math.sin(x * 0.01) * Math.sin(x * 0.013 + 1000);
+// ===== STELLE CADENTI =====
+let shootingStarsArr=[];
+function spawnShootingStar(){
+  if(Math.random()<0.01){ // rarità
+    shootingStarsArr.push({
+      x: Math.random()*w,
+      y: Math.random()*h/2,
+      len: Math.random()*100+50,
+      speed: Math.random()*10+8,
+      alpha:1
+    });
+  }
 }
+function drawShootingStars(){
+  shootCtx.clearRect(0,0,w,h);
+  spawnShootingStar();
+  shootingStarsArr.forEach((s,i)=>{
+    shootCtx.beginPath();
+    shootCtx.moveTo(s.x,s.y);
+    shootCtx.lineTo(s.x-s.len,s.y+s.len);
+    shootCtx.strokeStyle=`rgba(255,255,255,${s.alpha})`;
+    shootCtx.lineWidth=2;
+    shootCtx.stroke();
+    s.x+=s.speed;
+    s.y+=s.speed;
+    s.alpha-=0.02;
+    if(s.alpha<=0) shootingStarsArr.splice(i,1);
+  });
+  requestAnimationFrame(drawShootingStars);
+}
+drawShootingStars();
 
-let t = 0;
+// ===== NOISE =====
+function noise(x){ return Math.sin(x*0.01)*Math.sin(x*0.013+1000);}
+let t=0;
 
 // ===== AURORA =====
-function drawAurora() {
-  ctx.clearRect(0, 0, w, h);
-
-  for (let l = 0; l < 5; l++) {
+function drawAurora(){
+  ctx.clearRect(0,0,w,h);
+  for(let l=0;l<5;l++){
     ctx.beginPath();
-    ctx.filter = `blur(${l * 20}px)`;
-
-    for (let x = 0; x < w; x += 3) {
-      let y =
-        h / 2 +
-        noise(x + t * 200 + l * 100) * 120 +
-        noise(x * 0.5 + t * 300) * 60;
-
-      ctx.lineTo(x, y);
+    ctx.filter=`blur(${l*20}px)`;
+    for(let x=0;x<w;x+=3){
+      let y=h/2+noise(x+t*200+l*100)*120+noise(x*0.5+t*300)*60;
+      ctx.lineTo(x,y);
     }
-
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-
-    let g = ctx.createLinearGradient(0, 0, 0, h);
-
-    if (l === 0) g.addColorStop(0, "rgba(120,115,245,0.25)");
-    if (l === 1) g.addColorStop(0, "rgba(255,110,196,0.2)");
-    if (l === 2) g.addColorStop(0, "rgba(66,230,149,0.2)");
-    if (l === 3) g.addColorStop(0, "rgba(255,255,255,0.08)");
-    if (l === 4) g.addColorStop(0, "rgba(120,200,255,0.1)");
-
-    g.addColorStop(1, "transparent");
-
-    ctx.fillStyle = g;
+    ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+    let g=ctx.createLinearGradient(0,0,0,h);
+    if(l===0) g.addColorStop(0,"rgba(120,115,245,0.25)");
+    if(l===1) g.addColorStop(0,"rgba(255,110,196,0.2)");
+    if(l===2) g.addColorStop(0,"rgba(66,230,149,0.2)");
+    if(l===3) g.addColorStop(0,"rgba(255,255,255,0.08)");
+    if(l===4) g.addColorStop(0,"rgba(120,200,255,0.1)");
+    g.addColorStop(1,"transparent");
+    ctx.fillStyle=g;
     ctx.fill();
   }
-
-  ctx.filter = "none";
-  t += 0.002;
-
+  ctx.filter="none";
+  t+=0.002;
   requestAnimationFrame(drawAurora);
 }
 drawAurora();
 
 // ===== LUCE =====
-const light = document.getElementById("light");
-document.addEventListener("mousemove", e => {
-  light.style.left = e.clientX + "px";
-  light.style.top = e.clientY + "px";
+const light=document.getElementById("light");
+document.addEventListener("mousemove",e=>{
+  light.style.left=e.clientX+"px";
+  light.style.top=e.clientY+"px";
 });
 
 // ===== TESTO =====
-const texts = [
-  "Quella che userai ogni giorno",
-  "Velocissima",
-  "Spacca davvero",
-  "Non è un'app qualsiasi"
-];
-
-let i = 0, j = 0, del = false;
-const el = document.getElementById("dynamicText");
-
-function type() {
-  let txt = texts[i];
-  el.innerHTML = "<span>" + txt.substring(0, j) + "</span>";
-
-  if (!del && j++ === txt.length) {
-    del = true;
-    setTimeout(type, 1200);
-    return;
-  }
-
-  if (del && j-- === 0) {
-    del = false;
-    i = (i + 1) % texts.length;
-  }
-
-  setTimeout(type, del ? 40 : 70);
+const texts=["Quella che userai ogni giorno","Velocissima","Spacca davvero","Non è un'app qualsiasi"];
+let i=0,j=0,del=false;
+const el=document.getElementById("dynamicText");
+function type(){
+  let txt=texts[i];
+  el.innerHTML="<span>"+txt.substring(0,j)+"</span>";
+  if(!del && j++===txt.length){ del=true; setTimeout(type,1200); return;}
+  if(del && j--===0){ del=false; i=(i+1)%texts.length;}
+  setTimeout(type,del?40:70);
 }
 type();
 </script>
