@@ -8,151 +8,238 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-body { height:100vh; overflow:hidden; background:#050505; color:white; }
-canvas { position:fixed; top:0; left:0; width:100%; height:100%; }
-#stars, #shootingStars { z-index:0; }
-#aurora { z-index:1; }
-.light { position:fixed; width:120px; height:120px; background:radial-gradient(circle, rgba(255,110,196,0.8), transparent 70%); pointer-events:none; transform:translate(-50%,-50%); z-index:2; mix-blend-mode:screen; }
-.container { height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; position:relative; z-index:3; }
-h1 { font-size:4.5rem; font-weight:800; background:linear-gradient(90deg,#ff6ec4,#7873f5,#42e695); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 30px rgba(255,110,196,0.2); }
-.dynamic-text { margin-top:25px; font-size:1.4rem; height:40px; }
-.dynamic-text span { border-right:2px solid rgba(255,255,255,0.7); padding-right:5px; animation:blink 0.8s infinite; }
-@keyframes blink {50%{border-color:transparent;}}
-.btn { margin-top:40px; padding:15px 45px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); color:white; cursor:pointer; }
-.btn:hover { background:linear-gradient(90deg,#ff6ec4,#7873f5); box-shadow:0 0 40px rgba(255,110,196,0.6); }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: #050505;
+  color: white;
+}
+
+/* CANVAS */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* LUCE MOUSE */
+.light {
+  position: fixed;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(255,110,196,0.9), transparent 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+/* CONTAINER */
+.container {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transform-style: preserve-3d;
+  transition: transform 0.08s ease-out;
+  position: relative;
+  z-index: 2;
+}
+
+/* TITOLO */
+h1 {
+  font-size: 4.5rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: translateZ(80px);
+  letter-spacing: 2px;
+  text-shadow: 0 0 30px rgba(255,110,196,0.2);
+}
+
+/* TESTO DINAMICO */
+.dynamic-text {
+  margin-top: 25px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  height: 40px;
+  transform: translateZ(50px);
+}
+
+.dynamic-text span {
+  background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-right: 2px solid rgba(255,255,255,0.7);
+  padding-right: 5px;
+  animation: blink 0.8s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { border-color: rgba(255,255,255,0.7); }
+  25%, 75% { border-color: transparent; }
+}
+
+/* BOTTONE */
+.btn {
+  margin-top: 40px;
+  padding: 15px 45px;
+  border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  color: white;
+  transform: translateZ(100px);
+  transition: 0.3s;
+}
+
+.btn:hover {
+  transform: translateZ(120px) scale(1.1);
+  background: linear-gradient(90deg, #ff6ec4, #7873f5);
+  box-shadow: 0 0 40px rgba(255,110,196,0.6);
+}
+
 </style>
 </head>
 
 <body>
 
-<canvas id="stars"></canvas>
-<canvas id="shootingStars"></canvas>
 <canvas id="aurora"></canvas>
 
 <div class="light" id="light"></div>
 
-<div class="container">
+<div class="container" id="container">
   <h1>I Want App</h1>
   <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
 
 <script>
-// ===== SETUP =====
-const starCanvas = document.getElementById("stars");
-const starCtx = starCanvas.getContext("2d");
-const shootingCanvas = document.getElementById("shootingStars");
-const shootCtx = shootingCanvas.getContext("2d");
-const auroraCanvas = document.getElementById("aurora");
-const ctx = auroraCanvas.getContext("2d");
+// AURORA SENZA MAGNETISMO
+const canvas = document.getElementById("aurora");
+const ctx = canvas.getContext("2d");
 
-let w,h;
-function resize(){ w=starCanvas.width=shootingCanvas.width=auroraCanvas.width=window.innerWidth; h=starCanvas.height=shootingCanvas.height=auroraCanvas.height=window.innerHeight;}
-resize(); window.addEventListener("resize",resize);
-
-// ===== STELLE FISSE =====
-let stars=[];
-for(let i=0;i<120;i++){
-  stars.push({x:Math.random()*w, y:Math.random()*h, size:Math.random()*2, alpha:Math.random(), speed:Math.random()*0.01});
+let w, h;
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
 }
-function drawStars(){
-  starCtx.clearRect(0,0,w,h);
-  stars.forEach(s=>{
-    s.alpha += (Math.random()-0.5)*0.02;
-    if(s.alpha<0.3) s.alpha=0.3;
-    if(s.alpha>1) s.alpha=1;
-    starCtx.beginPath();
-    starCtx.arc(s.x,s.y,s.size,0,Math.PI*2);
-    starCtx.fillStyle=`rgba(255,255,255,${s.alpha})`;
-    starCtx.fill();
-  });
-  requestAnimationFrame(drawStars);
-}
-drawStars();
+resize();
+window.addEventListener("resize", resize);
 
-// ===== STELLE CADENTI =====
-let shootingStarsArr=[];
-function spawnShootingStar(){
-  if(Math.random()<0.005){ // rarità
-    shootingStarsArr.push({
-      x: Math.random()*w,
-      y: Math.random()*h/2,
-      len: Math.random()*80+30,
-      speed: Math.random()*6+4,
-      alpha:1
-    });
-  }
-}
-function drawShootingStars(){
-  shootCtx.clearRect(0,0,w,h);
-  spawnShootingStar();
-  shootingStarsArr.forEach((s,i)=>{
-    shootCtx.beginPath();
-    shootCtx.moveTo(s.x,s.y);
-    shootCtx.lineTo(s.x-s.len,s.y+s.len);
-    shootCtx.strokeStyle=`rgba(255,255,255,${s.alpha})`;
-    shootCtx.lineWidth=2;
-    shootCtx.stroke();
-    s.x+=s.speed;
-    s.y+=s.speed*0.8;
-    s.alpha-=0.02;
-    if(s.alpha<=0) shootingStarsArr.splice(i,1);
-  });
-  requestAnimationFrame(drawShootingStars);
-}
-drawShootingStars();
+let time = 0;
 
-// ===== NOISE =====
-function noise(x){ return Math.sin(x*0.01)*Math.sin(x*0.013+1000);}
-let t=0;
+function drawAurora() {
+  ctx.clearRect(0, 0, w, h);
 
-// ===== AURORA =====
-function drawAurora(){
-  ctx.clearRect(0,0,w,h);
-  for(let l=0;l<5;l++){
+  for (let i = 0; i < 4; i++) {
     ctx.beginPath();
-    ctx.filter=`blur(${l*8}px)`; // blur moderato
-    for(let x=0;x<w;x+=3){
-      let y=h/2+noise(x+t*150+l*100)*80+noise(x*0.5+t*200)*40;
-      ctx.lineTo(x,y);
+
+    for (let x = 0; x < w; x += 4) {
+      let y =
+        h / 2 +
+        Math.sin(x * 0.002 + time + i) * 60 +
+        Math.sin(x * 0.004 + time * 1.5) * 30;
+
+      ctx.lineTo(x, y);
     }
-    ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
-    let g=ctx.createLinearGradient(0,0,0,h);
-    if(l===0) g.addColorStop(0,"rgba(120,115,245,0.25)");
-    if(l===1) g.addColorStop(0,"rgba(255,110,196,0.2)");
-    if(l===2) g.addColorStop(0,"rgba(66,230,149,0.2)");
-    if(l===3) g.addColorStop(0,"rgba(255,255,255,0.08)");
-    if(l===4) g.addColorStop(0,"rgba(120,200,255,0.1)");
-    g.addColorStop(1,"transparent");
-    ctx.fillStyle=g;
+
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+
+    let gradient = ctx.createLinearGradient(0, 0, 0, h);
+
+    if (i === 0) {
+      gradient.addColorStop(0, "rgba(120,115,245,0.35)");
+    } else if (i === 1) {
+      gradient.addColorStop(0, "rgba(255,110,196,0.3)");
+    } else if (i === 2) {
+      gradient.addColorStop(0, "rgba(66,230,149,0.3)");
+    } else {
+      gradient.addColorStop(0, "rgba(255,255,255,0.1)");
+    }
+
+    gradient.addColorStop(1, "transparent");
+
+    ctx.fillStyle = gradient;
     ctx.fill();
   }
-  ctx.filter="none";
-  t+=0.0025;
+
+  time += 0.008;
   requestAnimationFrame(drawAurora);
 }
+
 drawAurora();
 
-// ===== LUCE =====
-const light=document.getElementById("light");
-document.addEventListener("mousemove",e=>{
-  light.style.left=e.clientX+"px";
-  light.style.top=e.clientY+"px";
+// LUCE FOLLOW
+const light = document.getElementById("light");
+document.addEventListener("mousemove", e => {
+  light.style.left = e.clientX + "px";
+  light.style.top = e.clientY + "px";
 });
 
-// ===== TESTO =====
-const texts=["Quella che userai ogni giorno","Velocissima","Spacca davvero","Non è un'app qualsiasi"];
-let i=0,j=0,del=false;
-const el=document.getElementById("dynamicText");
-function type(){
-  let txt=texts[i];
-  el.innerHTML="<span>"+txt.substring(0,j)+"</span>";
-  if(!del && j++===txt.length){ del=true; setTimeout(type,1200); return;}
-  if(del && j--===0){ del=false; i=(i+1)%texts.length;}
-  setTimeout(type,del?40:70);
+// PARALLAX
+const container = document.getElementById("container");
+document.addEventListener("mousemove", e => {
+  let x = (window.innerWidth / 2 - e.clientX) / 30;
+  let y = (window.innerHeight / 2 - e.clientY) / 30;
+  container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+});
+
+// TESTO DINAMICO
+const texts = [
+  "Quella che userai ogni giorno ",
+  "Velocissima ",
+  "Spacca davvero ",
+  "Non è un'app qualsiasi "
+];
+
+let i = 0;
+let j = 0;
+let currentText = "";
+let isDeleting = false;
+
+const dynamicText = document.getElementById("dynamicText");
+
+function typeEffect() {
+  currentText = texts[i];
+
+  if (!isDeleting) {
+    dynamicText.innerHTML = "<span>" + currentText.substring(0, j++) + "</span>";
+  } else {
+    dynamicText.innerHTML = "<span>" + currentText.substring(0, j--) + "</span>";
+  }
+
+  if (!isDeleting && j === currentText.length) {
+    isDeleting = true;
+    setTimeout(typeEffect, 1200);
+    return;
+  }
+
+  if (isDeleting && j === 0) {
+    isDeleting = false;
+    i = (i + 1) % texts.length;
+  }
+
+  setTimeout(typeEffect, isDeleting ? 40 : 70);
 }
-type();
+
+typeEffect();
 </script>
 
 </body>
