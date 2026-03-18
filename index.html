@@ -32,12 +32,12 @@ canvas {
   z-index: 0;
 }
 
-/* LUCE MOUSE */
+/* LUCE */
 .light {
   position: fixed;
   width: 120px;
   height: 120px;
-  background: radial-gradient(circle, rgba(255,110,196,0.9), transparent 70%);
+  background: radial-gradient(circle, rgba(255,110,196,0.8), transparent 70%);
   pointer-events: none;
   transform: translate(-50%, -50%);
   z-index: 1;
@@ -52,7 +52,6 @@ canvas {
   align-items: center;
   flex-direction: column;
   transform-style: preserve-3d;
-  transition: transform 0.08s ease-out;
   position: relative;
   z-index: 2;
 }
@@ -64,51 +63,41 @@ h1 {
   background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  transform: translateZ(80px);
-  letter-spacing: 2px;
-  text-shadow: 0 0 30px rgba(255,110,196,0.2);
+  text-shadow: 0 0 40px rgba(255,110,196,0.2);
 }
 
-/* TESTO DINAMICO */
+/* TESTO */
 .dynamic-text {
   margin-top: 25px;
   font-size: 1.4rem;
   font-weight: 600;
   height: 40px;
-  transform: translateZ(50px);
 }
 
 .dynamic-text span {
-  background: linear-gradient(90deg, #ff6ec4, #7873f5, #42e695);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   border-right: 2px solid rgba(255,255,255,0.7);
   padding-right: 5px;
   animation: blink 0.8s infinite;
 }
 
 @keyframes blink {
-  0%, 50%, 100% { border-color: rgba(255,255,255,0.7); }
-  25%, 75% { border-color: transparent; }
+  50% { border-color: transparent; }
 }
 
-/* BOTTONE */
+/* BTN */
 .btn {
   margin-top: 40px;
   padding: 15px 45px;
   border-radius: 50px;
   border: 1px solid rgba(255,255,255,0.2);
-  font-weight: 600;
-  cursor: pointer;
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
   color: white;
-  transform: translateZ(100px);
+  cursor: pointer;
   transition: 0.3s;
 }
 
 .btn:hover {
-  transform: translateZ(120px) scale(1.1);
   background: linear-gradient(90deg, #ff6ec4, #7873f5);
   box-shadow: 0 0 40px rgba(255,110,196,0.6);
 }
@@ -119,17 +108,16 @@ h1 {
 <body>
 
 <canvas id="aurora"></canvas>
-
 <div class="light" id="light"></div>
 
-<div class="container" id="container">
+<div class="container">
   <h1>I Want App</h1>
   <div class="dynamic-text" id="dynamicText"></div>
   <button class="btn">Scarica ora</button>
 </div>
 
 <script>
-// AURORA SENZA MAGNETISMO
+// ===== CANVAS =====
 const canvas = document.getElementById("aurora");
 const ctx = canvas.getContext("2d");
 
@@ -141,19 +129,29 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-let time = 0;
+// ===== NOISE (pseudo perlin) =====
+function noise(x) {
+  return Math.sin(x * 0.01) * Math.sin(x * 0.013 + 1000);
+}
 
-function drawAurora() {
+let t = 0;
+
+// ===== AURORA ORGANICA =====
+function draw() {
   ctx.clearRect(0, 0, w, h);
 
-  for (let i = 0; i < 4; i++) {
+  for (let layer = 0; layer < 5; layer++) {
     ctx.beginPath();
 
-    for (let x = 0; x < w; x += 4) {
-      let y =
-        h / 2 +
-        Math.sin(x * 0.002 + time + i) * 60 +
-        Math.sin(x * 0.004 + time * 1.5) * 30;
+    let blur = layer * 20;
+    ctx.filter = `blur(${blur}px)`; // profondità
+
+    for (let x = 0; x < w; x += 3) {
+      let n =
+        noise(x + t * 200 + layer * 100) * 120 +
+        noise(x * 0.5 + t * 300) * 60;
+
+      let y = h / 2 + n;
 
       ctx.lineTo(x, y);
     }
@@ -162,84 +160,66 @@ function drawAurora() {
     ctx.lineTo(0, h);
     ctx.closePath();
 
-    let gradient = ctx.createLinearGradient(0, 0, 0, h);
+    let g = ctx.createLinearGradient(0, 0, 0, h);
 
-    if (i === 0) {
-      gradient.addColorStop(0, "rgba(120,115,245,0.35)");
-    } else if (i === 1) {
-      gradient.addColorStop(0, "rgba(255,110,196,0.3)");
-    } else if (i === 2) {
-      gradient.addColorStop(0, "rgba(66,230,149,0.3)");
-    } else {
-      gradient.addColorStop(0, "rgba(255,255,255,0.1)");
-    }
+    if (layer === 0) g.addColorStop(0, "rgba(120,115,245,0.25)");
+    if (layer === 1) g.addColorStop(0, "rgba(255,110,196,0.2)");
+    if (layer === 2) g.addColorStop(0, "rgba(66,230,149,0.2)");
+    if (layer === 3) g.addColorStop(0, "rgba(255,255,255,0.08)");
+    if (layer === 4) g.addColorStop(0, "rgba(120,200,255,0.1)");
 
-    gradient.addColorStop(1, "transparent");
+    g.addColorStop(1, "transparent");
 
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = g;
     ctx.fill();
   }
 
-  time += 0.008;
-  requestAnimationFrame(drawAurora);
+  ctx.filter = "none";
+
+  t += 0.002; // movimento lento = premium
+  requestAnimationFrame(draw);
 }
 
-drawAurora();
+draw();
 
-// LUCE FOLLOW
+// ===== LUCE MOUSE =====
 const light = document.getElementById("light");
 document.addEventListener("mousemove", e => {
   light.style.left = e.clientX + "px";
   light.style.top = e.clientY + "px";
 });
 
-// PARALLAX
-const container = document.getElementById("container");
-document.addEventListener("mousemove", e => {
-  let x = (window.innerWidth / 2 - e.clientX) / 30;
-  let y = (window.innerHeight / 2 - e.clientY) / 30;
-  container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-});
-
-// TESTO DINAMICO
+// ===== TESTO =====
 const texts = [
-  "Quella che userai ogni giorno ",
-  "Velocissima ",
-  "Spacca davvero ",
-  "Non è un'app qualsiasi "
+  "Quella che userai ogni giorno",
+  "Velocissima",
+  "Spacca davvero",
+  "Non è un'app qualsiasi"
 ];
 
-let i = 0;
-let j = 0;
-let currentText = "";
-let isDeleting = false;
+let i = 0, j = 0, del = false;
+const el = document.getElementById("dynamicText");
 
-const dynamicText = document.getElementById("dynamicText");
+function type() {
+  let txt = texts[i];
 
-function typeEffect() {
-  currentText = texts[i];
+  el.innerHTML = "<span>" + txt.substring(0, j) + "</span>";
 
-  if (!isDeleting) {
-    dynamicText.innerHTML = "<span>" + currentText.substring(0, j++) + "</span>";
-  } else {
-    dynamicText.innerHTML = "<span>" + currentText.substring(0, j--) + "</span>";
-  }
-
-  if (!isDeleting && j === currentText.length) {
-    isDeleting = true;
-    setTimeout(typeEffect, 1200);
+  if (!del && j++ === txt.length) {
+    del = true;
+    setTimeout(type, 1200);
     return;
   }
 
-  if (isDeleting && j === 0) {
-    isDeleting = false;
+  if (del && j-- === 0) {
+    del = false;
     i = (i + 1) % texts.length;
   }
 
-  setTimeout(typeEffect, isDeleting ? 40 : 70);
+  setTimeout(type, del ? 40 : 70);
 }
 
-typeEffect();
+type();
 </script>
 
 </body>
