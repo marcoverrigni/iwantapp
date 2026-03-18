@@ -29,8 +29,11 @@ canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
 }
+
+/* livelli */
+#stars { z-index: 0; }
+#aurora { z-index: 1; }
 
 /* LUCE */
 .light {
@@ -40,23 +43,21 @@ canvas {
   background: radial-gradient(circle, rgba(255,110,196,0.8), transparent 70%);
   pointer-events: none;
   transform: translate(-50%, -50%);
-  z-index: 1;
+  z-index: 2;
   mix-blend-mode: screen;
 }
 
-/* CONTAINER */
+/* CONTENUTO */
 .container {
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  transform-style: preserve-3d;
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
-/* TITOLO */
 h1 {
   font-size: 4.5rem;
   font-weight: 800;
@@ -66,11 +67,9 @@ h1 {
   text-shadow: 0 0 40px rgba(255,110,196,0.2);
 }
 
-/* TESTO */
 .dynamic-text {
   margin-top: 25px;
   font-size: 1.4rem;
-  font-weight: 600;
   height: 40px;
 }
 
@@ -84,7 +83,6 @@ h1 {
   50% { border-color: transparent; }
 }
 
-/* BTN */
 .btn {
   margin-top: 40px;
   padding: 15px 45px;
@@ -94,12 +92,6 @@ h1 {
   backdrop-filter: blur(10px);
   color: white;
   cursor: pointer;
-  transition: 0.3s;
-}
-
-.btn:hover {
-  background: linear-gradient(90deg, #ff6ec4, #7873f5);
-  box-shadow: 0 0 40px rgba(255,110,196,0.6);
 }
 
 </style>
@@ -107,7 +99,9 @@ h1 {
 
 <body>
 
+<canvas id="stars"></canvas>
 <canvas id="aurora"></canvas>
+
 <div class="light" id="light"></div>
 
 <div class="container">
@@ -117,41 +111,73 @@ h1 {
 </div>
 
 <script>
-// ===== CANVAS =====
-const canvas = document.getElementById("aurora");
-const ctx = canvas.getContext("2d");
+// ===== SETUP =====
+const starCanvas = document.getElementById("stars");
+const starCtx = starCanvas.getContext("2d");
+
+const auroraCanvas = document.getElementById("aurora");
+const ctx = auroraCanvas.getContext("2d");
 
 let w, h;
 function resize() {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
+  w = starCanvas.width = auroraCanvas.width = window.innerWidth;
+  h = starCanvas.height = auroraCanvas.height = window.innerHeight;
 }
 resize();
 window.addEventListener("resize", resize);
 
-// ===== NOISE (pseudo perlin) =====
+// ===== STELLE =====
+let stars = [];
+
+for (let i = 0; i < 120; i++) {
+  stars.push({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    size: Math.random() * 2,
+    alpha: Math.random(),
+    speed: Math.random() * 0.02
+  });
+}
+
+function drawStars() {
+  starCtx.clearRect(0, 0, w, h);
+
+  stars.forEach(s => {
+    s.alpha += (Math.random() - 0.5) * 0.05;
+
+    if (s.alpha < 0.1) s.alpha = 0.1;
+    if (s.alpha > 1) s.alpha = 1;
+
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    starCtx.fillStyle = `rgba(255,255,255,${s.alpha})`;
+    starCtx.fill();
+  });
+
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// ===== NOISE =====
 function noise(x) {
   return Math.sin(x * 0.01) * Math.sin(x * 0.013 + 1000);
 }
 
 let t = 0;
 
-// ===== AURORA ORGANICA =====
-function draw() {
+// ===== AURORA =====
+function drawAurora() {
   ctx.clearRect(0, 0, w, h);
 
-  for (let layer = 0; layer < 5; layer++) {
+  for (let l = 0; l < 5; l++) {
     ctx.beginPath();
-
-    let blur = layer * 20;
-    ctx.filter = `blur(${blur}px)`; // profondità
+    ctx.filter = `blur(${l * 20}px)`;
 
     for (let x = 0; x < w; x += 3) {
-      let n =
-        noise(x + t * 200 + layer * 100) * 120 +
+      let y =
+        h / 2 +
+        noise(x + t * 200 + l * 100) * 120 +
         noise(x * 0.5 + t * 300) * 60;
-
-      let y = h / 2 + n;
 
       ctx.lineTo(x, y);
     }
@@ -162,11 +188,11 @@ function draw() {
 
     let g = ctx.createLinearGradient(0, 0, 0, h);
 
-    if (layer === 0) g.addColorStop(0, "rgba(120,115,245,0.25)");
-    if (layer === 1) g.addColorStop(0, "rgba(255,110,196,0.2)");
-    if (layer === 2) g.addColorStop(0, "rgba(66,230,149,0.2)");
-    if (layer === 3) g.addColorStop(0, "rgba(255,255,255,0.08)");
-    if (layer === 4) g.addColorStop(0, "rgba(120,200,255,0.1)");
+    if (l === 0) g.addColorStop(0, "rgba(120,115,245,0.25)");
+    if (l === 1) g.addColorStop(0, "rgba(255,110,196,0.2)");
+    if (l === 2) g.addColorStop(0, "rgba(66,230,149,0.2)");
+    if (l === 3) g.addColorStop(0, "rgba(255,255,255,0.08)");
+    if (l === 4) g.addColorStop(0, "rgba(120,200,255,0.1)");
 
     g.addColorStop(1, "transparent");
 
@@ -175,14 +201,13 @@ function draw() {
   }
 
   ctx.filter = "none";
+  t += 0.002;
 
-  t += 0.002; // movimento lento = premium
-  requestAnimationFrame(draw);
+  requestAnimationFrame(drawAurora);
 }
+drawAurora();
 
-draw();
-
-// ===== LUCE MOUSE =====
+// ===== LUCE =====
 const light = document.getElementById("light");
 document.addEventListener("mousemove", e => {
   light.style.left = e.clientX + "px";
@@ -202,7 +227,6 @@ const el = document.getElementById("dynamicText");
 
 function type() {
   let txt = texts[i];
-
   el.innerHTML = "<span>" + txt.substring(0, j) + "</span>";
 
   if (!del && j++ === txt.length) {
@@ -218,7 +242,6 @@ function type() {
 
   setTimeout(type, del ? 40 : 70);
 }
-
 type();
 </script>
 
